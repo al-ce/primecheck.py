@@ -2,6 +2,8 @@
 
 import argparse
 from colorama import Fore
+from collections.abc import Generator
+import math
 
 GREEN = Fore.GREEN
 RED = Fore.RED
@@ -46,6 +48,20 @@ def is_prime(n: int) -> bool:
     return True
 
 
+def fast_primes(max_n: int) -> Generator[int, None, None]:
+    """https://github.com/TheAlgorithms/Python/blob/master/maths/prime_numbers.py"""  # noqa
+    numbers: Generator = (i for i in range(1, (max_n + 1), 2))
+    if max_n > 2:
+        yield 2
+    for i in (n for n in numbers if n > 1):
+        bound = int(math.sqrt(i)) + 1
+        for j in range(3, bound, 2):
+            if (i % j) == 0:
+                break
+        else:
+            yield i
+
+
 def print_colorized_ints(integers: list) -> str:
     """Print the given list of integers, colorized by primality.
     Green for prime, red for composite."""
@@ -60,10 +76,25 @@ def print_colorized_ints(integers: list) -> str:
         print(f"{color}{n}{RESET}".rjust(width))
 
 
+def print_primes_to_n(n: int) -> None:
+    """Print the first n primes."""
+
+    if not n:
+        return
+
+    print(f"\nFirst {n} primes:")
+    for i, prime in enumerate(fast_primes(n), start=1):
+        print(f"{prime}".rjust(len(str(n))), end=" ")
+        if i % 10 == 0:
+            print()
+    print()
+
+
 def main():
     args = parser.parse_args()
-    # n = args.nth
+    n = args.nth
     print_colorized_ints(args.integers)
+    print_primes_to_n(n)
 
 
 if __name__ == "__main__":
