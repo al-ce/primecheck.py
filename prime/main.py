@@ -14,29 +14,33 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "integers",
     default=[],
-    help="Primality check for one or more integers",
+    help="Primality check for one or more integers, printed back to you",
     metavar="N",
     nargs='*',
     type=int,
 )
 parser.add_argument(
-    "--n",
+    "--n", "-N",
     default=0,
     dest="nth",
-    help="Limit of the first n primes to be printed. Max 10_000.",
+    help="Print all primes up to n.\n$ pprime --n 10",
     required=False,
     type=int,
+)
+parser.add_argument(
+    "--u", "-U",
+    dest="unsortFlag",
+    help="Flag to keep your list of integers unsorted",
+    action="store_true",
 )
 
 
 def is_prime(n: int) -> bool:
     """Check if a number is prime."""
 
-    # 2 and 3 are prime, and any number < 2 is not prime
     if n <= 3:
         return n > 1
 
-    # Even numbers and multiples of 3 are not prime
     if n % 2 == 0 or n % 3 == 0:
         return False
 
@@ -60,20 +64,27 @@ def fast_primes(max_n: int) -> Generator[int, None, None]:
                 break
         else:
             yield i
+    print()
 
 
-def print_colorized_ints(integers: list) -> str:
+def print_checked_primes(integers: list, unsort: bool) -> str:
     """Print the given list of integers, colorized by primality.
     Green for prime, red for composite."""
 
     if not integers:
         return
 
+    integers.sort() if not unsort else integers
+
     width = len(f"{RED}{max(integers)}{RESET}")
 
-    for n in integers:
+    for i, n in enumerate(integers, start=1):
         color = GREEN if is_prime(n) else RED
-        print(f"{color}{n}{RESET}".rjust(width))
+        print(f"{color}{n}{RESET}".rjust(width), end=" ")
+        if i % 5 == 0 and i > 1:
+            print()
+        elif i == len(integers):
+            print()
 
 
 def print_primes_to_n(n: int) -> None:
@@ -82,12 +93,11 @@ def print_primes_to_n(n: int) -> None:
     if not n:
         return
 
-    print(f"\nFirst {n} primes:")
+    print(f"Prime numbers up to {n}:")
     for i, prime in enumerate(fast_primes(n), start=1):
         print(f"{prime}".rjust(len(str(n))), end=" ")
         if i % 10 == 0:
             print()
-    print()
 
 
 class Test:
@@ -123,7 +133,9 @@ class Test:
 def main():
     args = parser.parse_args()
     n = args.nth
-    print_colorized_ints(args.integers)
+    unsortFlag = args.unsortFlag
+    print()
+    print_checked_primes(args.integers, unsortFlag)
     print_primes_to_n(n)
 
 
