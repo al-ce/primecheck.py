@@ -3,7 +3,7 @@
 import argparse
 from colorama import Fore
 from collections.abc import Generator
-import math
+from math import sqrt
 
 GREEN = Fore.GREEN
 RED = Fore.RED
@@ -35,6 +35,28 @@ parser.add_argument(
 )
 
 
+def factorization(n: int) -> list:
+    """Get all the factors of an integer"""
+
+    if n == 0:
+        return [0]
+
+    factors = [n]
+    if n < 1:
+        n *= -1
+        factors = [-1, n]
+
+    s = sqrt(n).__floor__()
+    for i in range(2, s+1):
+        if n % i == 0:
+            factors.append(i)
+            if (q := n // i) != i:
+                factors.append(q)
+
+    factors.sort()
+    return factors
+
+
 def is_prime(n: int) -> bool:
     """Check if a number is prime."""
 
@@ -58,7 +80,7 @@ def fast_primes(max_n: int) -> Generator[int, None, None]:
     if max_n > 2:
         yield 2
     for i in (n for n in numbers if n > 1):
-        bound = int(math.sqrt(i)) + 1
+        bound = int(sqrt(i)) + 1
         for j in range(3, bound, 2):
             if (i % j) == 0:
                 break
@@ -67,31 +89,43 @@ def fast_primes(max_n: int) -> Generator[int, None, None]:
     print()
 
 
-def print_checked_primes(integers: list, unsort: bool) -> str:
-    """Print the given list of integers, colorized by primality.
-    Green for prime, red for composite."""
+def integer_dict(integers: list) -> dict:
+    """Return a dict of integers. Their value is a dict of their factors,
+    their primality, and a string representation of the integer, colorized
+    by primality."""
 
-    if not integers:
-        return
+    return {
+        n: {
+            "str": f"{GREEN if is_prime(n) else RED}{n}{RESET}",
+            "factors": factorization(n),
+            # "is_prime": is_prime(n), # Not used
+        }
+        for n in integers
+    }
 
-    integers.sort() if not unsort else integers
 
-    width = len(f"{RED}{max(integers)}{RESET}")
+def print_integers(integers: list, unsort: bool) -> str:
+    """Print the given list of integers, colorized by primality, and their
+    factors. Green for prime, red for composite."""
 
-    for i, n in enumerate(integers, start=1):
-        color = GREEN if is_prime(n) else RED
-        print(f"{color}{n}{RESET}".rjust(width), end=" ")
-        if i % 5 == 0 and i > 1:
-            print()
-        elif i == len(integers):
-            print()
+    integers if unsort else integers.sort()
+
+    sorted_strs = sorted(
+        [str(n) for n in integers],
+        key=lambda x: len(str(x))
+    )
+    lls = len(longest_str := sorted_strs[-1])
+    width = len(f"{RED}{longest_str}{RESET}")
+
+    print("n".rjust(lls), " | factors")
+    print("-" * (lls + 10))
+
+    for k, v in integer_dict(integers).items():
+        print(v["str"].rjust(width), " |", *v["factors"])
 
 
 def print_primes_to_n(n: int) -> None:
     """Print the first n primes."""
-
-    if not n:
-        return
 
     print(f"Prime numbers up to {n}:")
     for i, prime in enumerate(fast_primes(n), start=1):
@@ -103,10 +137,12 @@ def print_primes_to_n(n: int) -> None:
 def main():
     args = parser.parse_args()
     n = args.nth
+    integers = args.integers
     unsortFlag = args.unsortFlag
+
     print()
-    print_checked_primes(args.integers, unsortFlag)
-    print_primes_to_n(n)
+    print_integers(integers, unsortFlag) if integers else None
+    print_primes_to_n(n) if n else None
 
 
 if __name__ == "__main__":
