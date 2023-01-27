@@ -1,7 +1,7 @@
 # primecheck.py
 A CLI tool to check if any ints in a list are prime and print their factors, or to print all primes up to *n*.
 
-![out](https://user-images.githubusercontent.com/23170004/214976863-0e72e45f-12a9-41a6-8f00-57301cc13152.gif)
+![out](https://user-images.githubusercontent.com/23170004/215036461-05f88176-7c6b-4471-b817-847657268c11.gif)
 
 ## Usage
 Clone the repo, cd into the directory, and install with `pip install .`
@@ -12,9 +12,22 @@ Pass any number of ints as positional arguments and the program will print them 
 
 <img width="259" alt="Screen Shot 2023-01-26 at 18 04 09" src="https://user-images.githubusercontent.com/23170004/214977636-510cdb9c-4a57-428b-81a4-7c15afac2e86.png">
 
+#### Unsorted
 By default, the program sorts the list before it prints it back, but this can be overridden with the `-U` flag.
 
 <img width="302" alt="Screen Shot 2023-01-26 at 18 00 52" src="https://user-images.githubusercontent.com/23170004/214977247-39d37008-e985-422c-82f7-484ea1eb1b92.png">
+
+#### Grouped Factors
+
+By default, the program will print out the sorted set of unique factors of any composite integer. When the `-G` flag is set, the factors will be grouped into their factor pairs.
+
+<img width="266" alt="Screen Shot 2023-01-27 at 02 04 42" src="https://user-images.githubusercontent.com/23170004/215037469-8a58cc33-a0af-4ffa-87f8-f28dc5441fc1.png">
+
+#### Prime Factors
+
+Setting the `-P` flag prints the prime factors of the integer rather than the composite factors.
+
+<img width="222" alt="Screen Shot 2023-01-27 at 02 08 37" src="https://user-images.githubusercontent.com/23170004/215038155-2ed7ba17-ce63-4f7f-acb5-2826c1301034.png">
 
 ### Prime-List
 Pass the `-N` flag followed by an int to print all primes up to that number.
