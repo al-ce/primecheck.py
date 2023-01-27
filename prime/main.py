@@ -33,27 +33,50 @@ parser.add_argument(
     help="Flag to keep your list of integers unsorted",
     action="store_true",
 )
+parser.add_argument(
+    "--g", "-G",
+    dest="groupFlag",
+    help="Flag to group your list of integers by their factors",
+    action="store_true",
+)
+parser.add_argument(
+    "--p", "-P",
+    dest="primeFlag",
+    help="Flag to print prime factors of your list of integers",
+    action="store_true",
+)
 
 
-def factorization(n: int) -> list:
+def factorization(n: int, groupFlag: bool) -> list:
     """Get all the factors of an integer"""
 
     if n == 0:
         return [0]
-
-    factors = [n]
     if n < 1:
         n *= -1
-        factors = [-1, n]
 
     s = sqrt(n).__floor__()
-    for i in range(2, s+1):
-        if n % i == 0:
-            factors.append(i)
-            if (q := n // i) != i:
-                factors.append(q)
 
-    factors.sort()
+    factors = sorted([(i, n//i) for i in range(2, s+1) if n % i == 0])
+
+    if groupFlag:
+        return factors
+
+    return sorted(set([i for tup in factors for i in tup]))
+
+
+def prime_factorization(n):
+    """Return the prime factors of a number."""
+    i = 2
+    factors = []
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+            factors.append(i)
+    if n > 1:
+        factors.append(n)
     return factors
 
 
@@ -89,7 +112,7 @@ def fast_primes(max_n: int) -> Generator[int, None, None]:
     print()
 
 
-def integer_dict(integers: list) -> dict:
+def integer_dict(integers: list, groupFlag: bool, pf_flag: bool) -> dict:
     """Return a dict of integers. Their value is a dict of their factors,
     their primality, and a string representation of the integer, colorized
     by primality."""
@@ -97,51 +120,64 @@ def integer_dict(integers: list) -> dict:
     return {
         n: {
             "str": f"{GREEN if is_prime(n) else RED}{n}{RESET}",
-            "factors": factorization(n),
-            # "is_prime": is_prime(n), # Not used
+            "factors":
+                prime_factorization(n) if pf_flag
+                else factorization(n, groupFlag)
         }
         for n in integers
     }
 
 
-def print_integers(integers: list, unsort: bool) -> str:
+def integer_sorter(integers: list, unsort: bool) -> list:
+    """Sort the given list of integers, or return it unsorted if the
+    unsort flag is set."""
+    integers if unsort else integers.sort()
+    return integers
+
+
+def print_integers(int_dict: dict, lls: int, width: int) -> str:
     """Print the given list of integers, colorized by primality, and their
     factors. Green for prime, red for composite."""
 
-    integers if unsort else integers.sort()
-
-    sorted_strs = sorted(
-        [str(n) for n in integers],
-        key=lambda x: len(str(x))
-    )
-    lls = len(longest_str := sorted_strs[-1])
-    width = len(f"{RED}{longest_str}{RESET}")
-
-    print("n".rjust(lls), " | factors")
+    print()
+    print("n".rjust(lls), "| factors")
     print("-" * (lls + 10))
 
-    for k, v in integer_dict(integers).items():
-        print(v["str"].rjust(width), " |", *v["factors"])
+    for k, v in int_dict.items():
+        print(v["str"].rjust(width), "|", *v["factors"])
 
 
 def print_primes_to_n(n: int) -> None:
     """Print the first n primes."""
 
-    print(f"Prime numbers up to {n}:")
+    print(f"\nPrime numbers up to {n}:")
     for i, prime in enumerate(fast_primes(n), start=1):
         print(f"{prime}".rjust(len(str(n))), end=" ")
         if i % 10 == 0:
             print()
 
 
+def measure_width(integers: list) -> int:
+    """Get length of longest integer in list as a string and its length when
+    colored by colorama.Fore.{color}"""
+    sorted_strs = sorted(
+        [str(n) for n in integers],
+        key=lambda x: len(str(x))
+    )
+    lls = len(longest_str := sorted_strs[-1])
+    width = len(f"{RED}{longest_str}{RESET}")
+    return lls, width
+
+
 def main():
     args = parser.parse_args()
-    n = args.nth
-    integers = args.integers
-    unsortFlag = args.unsortFlag
+    integers, n, unsortFlag, groupFlag, pfFlag = vars(args).values()
 
-    print()
-    print_integers(integers, unsortFlag) if integers else None
+    if sorted_ints := integer_sorter(integers, unsortFlag):
+        int_dict = integer_dict(sorted_ints, groupFlag, pfFlag)
+        lls, width = measure_width(sorted_ints)
+        print_integers(int_dict, lls, width)
+
     print_primes_to_n(n) if n else None
 
 
