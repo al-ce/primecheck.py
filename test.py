@@ -2,7 +2,8 @@ from operator import mul
 from functools import reduce
 from primes import primes_list
 from prime.main import (
-    is_prime, fast_primes, factorization, prime_factorization
+    is_prime, fast_primes, factorization, prime_factorization,
+    get_product, factor_radical, radterm_str, combine_like_terms
 )
 
 
@@ -75,3 +76,46 @@ class Test:
 
         limit = self.primes.index(nth) + 1
         assert fast_primes_list == self.primes[:limit]
+
+    def test_get_product(self):
+        for i in range(2, 100):
+            for j in range(2, 100):
+                assert get_product([i, j]) == i * j
+                assert get_product([-i, -j]) == i * j
+                assert not get_product([i, -j]) == i * j
+
+    def test_factor_radical(self):
+        rad_terms = [(base, exp) for base in range(2, 10)
+                     for exp in range(2, 10)]
+
+        # e.g. sqrt(4**2) = 4, root3(7**3) = 7, etc.
+        for base, nth in rad_terms:
+            rad = base ** nth
+            assert get_product(factor_radical(rad, nth)) == base
+
+            # primes can't be factored further, so expected output is
+            # e.g. factor_radical(7, 2) = (root(2)7))
+            if is_prime(base):
+                expected_string = radterm_str(base, nth)
+                assert factor_radical(base, nth)[0] == expected_string
+
+        # Test some known values with multiple terms
+        known_simplifications = [
+            (2, 28, "2", 7),
+            (2, 60, "2", 15),
+            (2, 120, "2", 30),
+            (2, 45, "3", 5),
+            (2, 54, "3", 6),
+            (2, 99, "3", 11),
+            (2, 32, "4", 2),
+            (2, 50, "5", 2),
+            (2, 75, "5", 3),
+            (2, 243, "9", 3),
+            (2, 700, "10", 7),
+            (3, 32, "2", 4),
+            (3, 54, "3", 2),
+        ]
+        for nth, old_base, coeff, new_base in known_simplifications:
+            output = combine_like_terms(factor_radical(old_base, nth))
+            expected = coeff + radterm_str(new_base, nth)
+            assert output == expected

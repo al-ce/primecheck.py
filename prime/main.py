@@ -3,7 +3,9 @@
 import argparse
 from colorama import Fore
 from collections.abc import Generator
+from functools import reduce
 from math import sqrt
+
 
 GREEN = Fore.GREEN
 RED = Fore.RED
@@ -45,6 +47,23 @@ parser.add_argument(
     help="Flag to print prime factors of your list of integers",
     action="store_true",
 )
+parser.add_argument(
+    "-rs",
+    dest="radical",
+    help="Simplify the nth root of n by factoring out any perfects squares",
+    nargs=2,
+)
+
+
+def colorize(text, color):
+    """Colorize text."""
+    color_code = getattr(Fore, color.upper())
+    return color_code + text + Fore.RESET
+
+
+def line_break():
+    """Print a line break."""
+    print()
 
 
 def factorization(n: int, groupFlag: bool) -> list:
@@ -109,7 +128,7 @@ def fast_primes(max_n: int) -> Generator[int, None, None]:
                 break
         else:
             yield i
-    print()
+    line_break()
 
 
 def integer_dict(integers: list, groupFlag: bool, pf_flag: bool) -> dict:
@@ -139,7 +158,7 @@ def print_integers(int_dict: dict, lls: int, width: int) -> str:
     """Print the given list of integers, colorized by primality, and their
     factors. Green for prime, red for composite."""
 
-    print()
+    line_break()
     print("n".rjust(lls), "| factors")
     print("-" * (lls + 10))
 
@@ -150,11 +169,11 @@ def print_integers(int_dict: dict, lls: int, width: int) -> str:
 def print_primes_to_n(n: int) -> None:
     """Print the first n primes."""
 
-    print(f"\nPrime numbers up to {n}:")
+    print(f"\nPrime numbers up to {colorize(n, 'cyan')}:")
     for i, prime in enumerate(fast_primes(n), start=1):
         print(f"{prime}".rjust(len(str(n))), end=" ")
         if i % 10 == 0:
-            print()
+            line_break()
 
 
 def measure_width(integers: list) -> int:
@@ -165,13 +184,85 @@ def measure_width(integers: list) -> int:
         key=lambda x: len(str(x))
     )
     lls = len(longest_str := sorted_strs[-1])
-    width = len(f"{RED}{longest_str}{RESET}")
+    width = len(colorize(longest_str, "red"))
     return lls, width
+
+
+def nth_root(base: int, nth: int) -> float:
+    """Return the nth root of a number."""
+    return base ** (1 / nth)
+
+
+def factor_radical(base: int, nth: int) -> int:
+    """Factor out perfect squares from the nth root of n."""
+
+    if is_prime(base):
+        return [radterm_str(base, nth)]
+
+    factors = [(1, base)] + factorization(base, True)
+    for f1, f2 in factors:
+        # Prevent infinite recursion
+        if f1 == 1:
+            continue
+
+        f1_rad, f2_rad = nth_root(f1, nth), nth_root(f2, nth)
+        if f1 ** nth == base:
+            return [f1]
+        elif f1_rad % 1 == 0:
+            return [f1_rad] + factor_radical(f2, nth)
+        elif f2_rad % 1 == 0:
+            return [f2_rad] + factor_radical(f1, nth)
+
+    return [radterm_str(base, nth)]
+
+
+def get_product(factors: list) -> int:
+    if not factors:
+        return None
+    return int(reduce(lambda x, y: x * y, factors))
+
+
+def combine_like_terms(factors: list) -> int:
+    """Multiply the coefficients of a list of factors. Returns the product of
+    the coefficients and the other elements of the list as a joined string."""
+
+    coefficient = get_product(
+        [f for f in factors if isinstance(f, (int, float))]
+    )
+    if coefficient is None:
+        coefficient = ""
+
+    other_terms = [f for f in factors if not isinstance(f, (int, float))]
+
+    return str(coefficient) + "".join(other_terms)
+
+
+def radterm_str(base: int, nth: int) -> str:
+    """Format the nth root of base as a string."""
+    # return f"{base} ** (1/{nth})"
+    return f"(root({nth}){base})"
+
+
+def print_simplified_radical(radical_term: list):
+    """Print the simplified nth root of base."""
+    nth, base = map(int, radical_term)
+    result = combine_like_terms(factor_radical(base, nth))
+
+    col_base, col_nth, col_equal, col_result = [
+        colorize(str(x), color)
+        for x, color in zip(
+            [base, nth, "=", result],
+            ["cyan", "yellow", "magenta", "green"]
+        )
+    ]
+
+    line_break()
+    print(f"{radterm_str(col_base, col_nth)} {col_equal} {col_result}")
 
 
 def main():
     args = parser.parse_args()
-    integers, n, unsortFlag, groupFlag, pfFlag = vars(args).values()
+    integers, n, unsortFlag, groupFlag, pfFlag, radical = vars(args).values()
 
     if sorted_ints := integer_sorter(integers, unsortFlag):
         int_dict = integer_dict(sorted_ints, groupFlag, pfFlag)
@@ -179,6 +270,7 @@ def main():
         print_integers(int_dict, lls, width)
 
     print_primes_to_n(n) if n else None
+    print_simplified_radical(radical) if radical else None
 
 
 if __name__ == "__main__":
