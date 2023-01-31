@@ -34,5 +34,11 @@ Pass the `-N` flag followed by an int to print all primes up to that number.
 
 <img width="510" alt="list" src="https://user-images.githubusercontent.com/23170004/214741795-1b2079ff-6091-45d1-8dd7-1fdfcf5ca501.png">
 
+### Radical Simplification
+
+Simplify any nth-root radical with `-rs {nth} {base}` by factoring out all perfect squares. The radical terms are formatted `root{nth}{base}`. For example, `3(root(3)(6))` is equivalent to `3 * ∛6`
+
+<img width="282" alt="Screen Shot 2023-01-29 at 22 22 56" src="https://user-images.githubusercontent.com/23170004/215387037-bdd11fe5-9c82-47bf-a79d-5afad5e1f9e4.png">
+
 ## Testing Implementation
 The program's `Test` class is intended to be used for testing with `pytest`. The two functions are checked against a [list of the first ten-thousand primes](https://primes.utm.edu/lists/small/10000.txt) as well as each other. To run the tests, clone the repo, cd into the directory, and run `pytest` in the terminal.
