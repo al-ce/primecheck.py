@@ -154,7 +154,7 @@ def integer_sorter(integers: list, unsort: bool) -> list:
     return integers
 
 
-def print_integers(int_dict: dict, lls: int, width: int) -> str:
+def print_integers(int_dict: dict, lls: int, width: int):
     """Print the given list of integers, colorized by primality, and their
     factors. Green for prime, red for composite."""
 
@@ -162,21 +162,21 @@ def print_integers(int_dict: dict, lls: int, width: int) -> str:
     print("n".rjust(lls), "| factors")
     print("-" * (lls + 10))
 
-    for k, v in int_dict.items():
+    for _, v in int_dict.items():
         print(v["str"].rjust(width), "|", *v["factors"])
 
 
 def print_primes_to_n(n: int) -> None:
     """Print the first n primes."""
 
-    print(f"\nPrime numbers up to {colorize(n, 'cyan')}:")
+    print(f"\nPrime numbers up to {colorize(str(n), 'cyan')}:")
     for i, prime in enumerate(fast_primes(n), start=1):
         print(f"{prime}".rjust(len(str(n))), end=" ")
         if i % 10 == 0:
             line_break()
 
 
-def measure_width(integers: list) -> int:
+def measure_width(integers: list) -> tuple[int, int]:
     """Get length of longest integer in list as a string and its length when
     colored by colorama.Fore.{color}"""
     sorted_strs = sorted(
@@ -193,7 +193,7 @@ def nth_root(base: int, nth: int) -> float:
     return base ** (1 / nth)
 
 
-def factor_radical(base: int, nth: int) -> int:
+def factor_radical(base: int, nth: int) -> list:
     """Factor out perfect squares from the nth root of n."""
 
     if is_prime(base):
@@ -216,13 +216,13 @@ def factor_radical(base: int, nth: int) -> int:
     return [radterm_str(base, nth)]
 
 
-def get_product(factors: list) -> int:
+def get_product(factors: list) -> int | None:
     if not factors:
         return None
     return int(reduce(lambda x, y: x * y, factors))
 
 
-def combine_like_terms(factors: list) -> int:
+def combine_like_terms(factors: list) -> str:
     """Multiply the coefficients of a list of factors. Returns the product of
     the coefficients and the other elements of the list as a joined string."""
 
